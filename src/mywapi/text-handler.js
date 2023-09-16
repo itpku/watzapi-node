@@ -1,5 +1,5 @@
 const { info } = require("../api/controllers/instance.controller");
-const { Text } = require("../api/models/text.model");
+const { Text } = require("./models/text.model");
 const Baseworker = require("./baseworker");
 
 class TextHandler extends Baseworker {

@@ -4,8 +4,9 @@ const instanceRoutes = require('./instance.route')
 const messageRoutes = require('./message.route')
 const miscRoutes = require('./misc.route')
 const groupRoutes = require('./group.route')
-const blastRoutes = require('./ddblast.route')
-const sendRoutes = require('./ddsend.route')
+// Ddy: 20230916
+const blastRoutes = require('../../mywapi/routes/blast.route')
+const sendRoutes = require('../../mywapi/routes/send.route')
 
 router.get('/status', (req, res) => res.send('OK'))
 router.use('/instance', instanceRoutes)

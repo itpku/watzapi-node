@@ -1,15 +1,15 @@
-const { WhatsAppInstance } = require('../class/instance')
+const { WhatsAppInstance } = require('../../api/class/instance')
 const fs = require('fs')
 const path = require('path')
 const config = require('../../config/config')
-const { Session } = require('../class/session')
+const { Session } = require('../../api/class/session')
 
-const ctrl = require('./message.controller')
+const ctrl = require('../../api/controllers/message.controller')
 const { Outbox } = require("../models/outboox.model")
 const { Device } = require("../models/device.model")
 const { Text } = require("../models/text.model")
 
-const WorkerBlast = require('../../mywapi/worker-blast')
+const WorkerBlast = require('../worker-blast')
 
 // exports.Scheduled = async (req, res) => {
 //     console.log('Job sedang dijalankan')

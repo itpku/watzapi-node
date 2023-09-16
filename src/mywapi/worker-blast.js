@@ -1,7 +1,7 @@
-const { Blast } = require("../api/models/blast.model")
-const { BlastTarget } = require("../api/models/blasttarget.model")
-const { Device } = require("../api/models/device.model")
-const { Text } = require("../api/models/text.model")
+const { Blast } = require("./models/blast.model")
+const { BlastTarget } = require("./models/blasttarget.model")
+const { Device } = require("./models/device.model")
+const { Text } = require("./models/text.model")
 var db = require("../config/myconfig");
 const { Op } = require('sequelize')
 const moment = require('moment');
@@ -9,7 +9,7 @@ var { Sequelize } = require("sequelize");
 const { info } = require("../api/controllers/instance.controller");
 const Baseworker = require("./baseworker");
 const { count } = require("../api/models/chat.model");
-const { Message } = require("../api/models/message.model");
+const { Message } = require("./models/message.model");
 const TextHandler = require("./text-handler");
 
 class WorkerBlast extends Baseworker {

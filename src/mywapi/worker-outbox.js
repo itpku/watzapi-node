@@ -1,8 +1,8 @@
-const { Message } = require("../api/models/message.model")
-const { Outbox } = require("../api/models/outboox.model")
-const { Device } = require("../api/models/device.model")
-const { Text } = require("../api/models/text.model")
-const { Blast } = require("../api/models/blast.model")
+const { Message } = require("./models/message.model")
+const { Outbox } = require("./models/outboox.model")
+const { Device } = require("./models/device.model")
+const { Text } = require("./models/text.model")
+const { Blast } = require("./models/blast.model")
 var db = require("../config/myconfig");
 const { Op } = require('sequelize')
 const moment = require('moment');
