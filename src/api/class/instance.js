@@ -66,7 +66,7 @@ class WhatsAppInstance {
                 body,
                 instanceKey: key,
             })
-            .catch(() => {})
+            .catch(() => { })
     }
 
     async init() {
