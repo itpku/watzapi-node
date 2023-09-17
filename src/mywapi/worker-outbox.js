@@ -33,7 +33,7 @@ class WorkerOutbox extends Baseworker {
 
     async runScheduled() {
 
-        // console.log((new Date()).toLocaleTimeString() + ' => Scheduled job sedang dijalankan')
+        console.log((new Date()).toLocaleTimeString() + ' => Scheduled job sedang dijalankan')
 
         var d = new Date();
         var dt = moment();//.format('yyyy-mm-dd hh:mm:ss');
@@ -75,8 +75,9 @@ class WorkerOutbox extends Baseworker {
 
         let prevGroup
         let device
+        let key
         let detail
-        let handler
+        let sender
         let status
         let remark
         let data
@@ -84,23 +85,36 @@ class WorkerOutbox extends Baseworker {
         outboxes.forEach(async (outbox) => {
 
             if (outbox.group !== prevGroup) {
-                const x = await this.mkHandler(outbox)
-                device = x.device
-                handler = x.handler
-                detail = x.detail
+                const handler = await this.mkHandler(outbox)
+                if (handler) {
+                    device = handler.device
+                    sender = handler.sender
+                    detail = handler.detail
+                }
             }
 
+            // if (device) {
+            //     if (device.instance_key) {
+            //         console.log("device -----------------------------------------------------------------")
+            //         console.log(device.instance_key)
+            //         key = device.instance_key
+            //     }
+            // }
+
             if (!device) {
+                status = 'failed'
                 remark = "No device"
             } else {
-                if (!handler) {
+                if (!sender) {
+                    status = 'failed'
                     remark = "No handler"
                 } else
                     if (!detail) {
+                        status = 'failed'
                         remark = "No detail"
                     } else {
                         status = 'sent'
-                        data = handler.send(outbox.to, detail)
+                        data = sender.send(outbox.to, detail)
                     }
             }
 
@@ -138,24 +152,36 @@ class WorkerOutbox extends Baseworker {
 
         })
 
+        // console.log("key ----------------------------------------------------------------------------------- ")
+        // console.log(key)
+        const obx = outboxes[0]
+        // console.log(obx.from)
+        const dev = await Device.findOne({ where: { phone_no: obx.from } })
+        if (dev) {
+            await this.sendWebhook(dev.instance_key)
+        }
+
     }
 
     async mkHandler(outbox) {
-        const device = await Device.findOne({ where: { phone_no: outbox.from } })
+        let result
         let detail
-        let handler
+        let sender
+        const device = await Device.findOne({ where: { phone_no: outbox.from } })
         switch (outbox.type) {
             case 'text':
                 detail = await Text.findOne({ where: { id: outbox.detail_id } })
-                handler = new TextHandler(device.instance_key)
+                sender = new TextHandler(device.instance_key)
                 break;
             default: return;
         }
-        const result = {
-            device: device,
-            detail: detail,
-            handler: handler
-        }
+
+        if (device && detail && sender)
+            result = {
+                device: device,
+                detail: detail,
+                sender: sender
+            }
         return result
     }
 
@@ -168,6 +194,13 @@ class WorkerOutbox extends Baseworker {
                 qty: qty
             })
         }
+    }
+
+    async sendWebhook(key) {
+        const json = {
+            "connection": "open"
+        }
+        await WhatsAppInstances[key].SendWebhook('messages:sent', json, key)
     }
 
 }

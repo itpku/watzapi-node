@@ -9,18 +9,9 @@ const config = require('./config/config')
 const { Session } = require('./api/class/session')
 const connectToCluster = require('./api/helper/connectMongoClient')
 
-// Ddy
-const schedule = require('node-schedule')
-// const WorkerBlast = require('./mywapi/worker-blast')
-const ObxBlast = require('./mywapi/worker-outbox')
-const WorkerOutbox = require('./mywapi/worker-outbox')
-const worker = new WorkerOutbox()
-const job = schedule.scheduleJob('*/2 * * * * *', function () {
-    // console.log((new Date()).toLocaleTimeString() + ' => Scheduled job sedang dijalankan')
-    // 20230911, ubah menjadi send outbox
-    // ...
-    worker.runScheduled()
-});
+// Ddy, 20230917
+const { runTask } = require('./mywapi/task-scheduler')
+runTask()
 
 let server
 

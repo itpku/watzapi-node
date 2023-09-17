@@ -14,13 +14,14 @@ class TextHandler extends Baseworker {
         let data
         const message = detail.text
         // console.log(detail)
+        console.log("TextHandler::send")
         try {
             data = await WhatsAppInstances[this.key].sendTextMessage(
                 id,
                 message
             )
         } catch (error) {
-            // console.log(error)
+            console.log(error)
         }
         return data
     }
