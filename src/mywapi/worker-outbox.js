@@ -156,11 +156,11 @@ class WorkerOutbox extends Baseworker {
                 "updated_at": outbox.updated_at,
             });
 
-            // await Outbox.destroy({
-            //     where: {
-            //         id: outbox.id
-            //     }
-            // });
+            await Outbox.destroy({
+                where: {
+                    id: outbox.id
+                }
+            });
 
             prevGroup = outbox.group
 
