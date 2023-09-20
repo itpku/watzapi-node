@@ -12,13 +12,24 @@ const { Text } = require("../models/text.model")
 const WorkerOutbox = require('../worker-outbox')
 
 exports.Message = (req, res) => {
-    const outboxId = req.body.outboxId;
+    const id = req.body.id;
     const worker = new WorkerOutbox()
-    worker.sendMessage(outboxId)
-    var d = {
-        'outboxId': outboxId,
+    worker.sendMessage(id)
+    var data = {
+        'id': id,
         'message': "sendMessage result goes here.................",
     }
-    return res.status(201).json({ error: false, data: d })
+    return res.status(201).json({ error: false, data: data })
+}
+
+exports.Messages = (req, res) => {
+    const group = req.body.outboxId;
+    const worker = new WorkerOutbox()
+    worker.sendMessages(group)
+    var data = {
+        'group': group,
+        'message': "sendMessage result goes here.................",
+    }
+    return res.status(201).json({ error: false, data: data })
 }
 

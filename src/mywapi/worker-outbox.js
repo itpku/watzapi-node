@@ -2,6 +2,7 @@ const { Message } = require("./models/message.model")
 const { Outbox } = require("./models/outboox.model")
 const { Device } = require("./models/device.model")
 const { Text } = require("./models/text.model")
+const { Media } = require("./models/media.model")
 const { Blast } = require("./models/blast.model")
 var db = require("../config/myconfig");
 const { Op } = require('sequelize')
@@ -10,6 +11,7 @@ var { Sequelize } = require("sequelize");
 const Baseworker = require("./baseworker");
 const { WhatsAppInstance } = require("../api/class/instance");
 const TextHandler = require("./text-handler");
+const MediaSender = require("./senders/sender1/media")
 
 class WorkerOutbox extends Baseworker {
 
@@ -17,7 +19,21 @@ class WorkerOutbox extends Baseworker {
         super()
     }
 
-    async sendMessage(group) {
+    async sendMessage(id) {
+        try {
+            const outboxes = await Outbox.findAll({
+                where: {
+                    id: id,
+                },
+            });
+            await this.iterateOutbox(outboxes);
+
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    async sendMessages(group) {
         try {
             const outboxes = await Outbox.findAll({
                 where: {
@@ -77,7 +93,7 @@ class WorkerOutbox extends Baseworker {
         let device
         let key
         let detail
-        let sender
+        var sender
         let status
         let remark
         let data
@@ -86,11 +102,9 @@ class WorkerOutbox extends Baseworker {
 
             if (outbox.group !== prevGroup) {
                 const handler = await this.mkHandler(outbox)
-                if (handler) {
-                    device = handler.device
-                    sender = handler.sender
-                    detail = handler.detail
-                }
+                device = handler.device
+                sender = handler.sender
+                detail = handler.detail
             }
 
             // if (device) {
@@ -102,15 +116,15 @@ class WorkerOutbox extends Baseworker {
             // }
 
             if (!device) {
-                status = 'failed'
+                status = 'fail'
                 remark = "No device"
             } else {
                 if (!sender) {
-                    status = 'failed'
-                    remark = "No handler"
+                    status = 'fail'
+                    remark = "No sender"
                 } else
                     if (!detail) {
-                        status = 'failed'
+                        status = 'fail'
                         remark = "No detail"
                     } else {
                         status = 'sent'
@@ -142,46 +156,80 @@ class WorkerOutbox extends Baseworker {
                 "updated_at": outbox.updated_at,
             });
 
-            await Outbox.destroy({
-                where: {
-                    id: outbox.id
-                }
-            });
+            // await Outbox.destroy({
+            //     where: {
+            //         id: outbox.id
+            //     }
+            // });
 
             prevGroup = outbox.group
 
         })
 
-        // console.log("key ----------------------------------------------------------------------------------- ")
-        // console.log(key)
-        const obx = outboxes[0]
-        // console.log(obx.from)
-        const dev = await Device.findOne({ where: { phone_no: obx.from } })
-        if (dev) {
-            await this.sendWebhook(dev.instance_key)
-        }
+        // // Kirim webhook 
+        // // console.log("key ----------------------------------------------------------------------------------- ")
+        // // console.log(key)
+        // const obx = outboxes[0]
+        // // console.log(obx.from)
+        // const dev = await Device.findOne({ where: { phone_no: obx.from } })
+        // if (dev) {
+        //     await this.sendWebhook(dev.instance_key)
+        // }
 
     }
 
     async mkHandler(outbox) {
+
         let result
         let detail
         let sender
+
+        // Note perlu ditambahkan pemeriksaan jika device is connected=true
         const device = await Device.findOne({ where: { phone_no: outbox.from } })
+
+        if (device) {
+            const instance = WhatsAppInstances[device.instance_key]
+            if (instance) {
+                let data
+                try {
+                    data = await instance.getInstanceDetail(device.instance_key)
+                    if (!data.error) {
+                        const data = data.instance_data
+                        if (!data.phone_connected) {
+                            device = undefined
+                        }
+                    }
+                } catch (error) {
+                    data = {}
+                }
+                // return res.json({
+                //     error: false,
+                //     message: 'Instance fetched successfully',
+                //     instance_data: data,
+                // })
+            }
+        }
+
         switch (outbox.type) {
             case 'text':
                 detail = await Text.findOne({ where: { id: outbox.detail_id } })
-                sender = new TextHandler(device.instance_key)
+                sender = new TextHandler(device.instance_key, "text")
                 break;
-            default: return;
+            case 'image':
+            case 'video':
+            case 'audio':
+            case 'doc':
+                detail = await Media.findOne({ where: { id: outbox.detail_id } })
+                sender = new MediaSender(device.instance_key, outbox.type)
+            default:
         }
 
-        if (device && detail && sender)
-            result = {
-                device: device,
-                detail: detail,
-                sender: sender
-            }
+        result = {
+            device: device,
+            detail: detail,
+            sender: sender
+        }
+
         return result
     }
 
@@ -196,11 +244,22 @@ class WorkerOutbox extends Baseworker {
         }
     }
 
+    // helpers ----------------------------------------------------------------------------------
+
     async sendWebhook(key) {
         const json = {
             "connection": "open"
         }
         await WhatsAppInstances[key].SendWebhook('messages:sent', json, key)
+    }
+
+    async isEmpty(obj) {
+        for (const prop in obj) {
+            if (Object.hasOwn(obj, prop)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

@@ -4,7 +4,7 @@ const worker = new ObxWorker()
 
 exports.runTask = function () {
 
-    const job = schedule.scheduleJob('*/2 * * * * *', function () {
+    const job = schedule.scheduleJob('*/5 * * * * *', function () {
         // console.log((new Date()).toLocaleTimeString() + ' => Scheduled job sedang dijalankan')
         worker.runScheduled()
     });

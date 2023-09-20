@@ -5,6 +5,7 @@ const loginVerify = require('../../api/middlewares/loginCheck')
 
 const router = express.Router()
 router.route('/message').post(controller.Message)
+router.route('/messages').post(controller.Messages)
 
 module.exports = router
 

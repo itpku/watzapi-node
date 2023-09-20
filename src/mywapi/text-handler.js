@@ -3,7 +3,7 @@ const { Text } = require("./models/text.model");
 const Baseworker = require("./baseworker");
 
 class TextHandler extends Baseworker {
-    key = null
+    // key = null
 
     constructor(key) {
         super()
@@ -12,13 +12,12 @@ class TextHandler extends Baseworker {
 
     async send(id, detail) {
         let data
-        const message = detail.text
         // console.log(detail)
-        console.log("TextHandler::send")
+        // console.log("TextHandler::send")
         try {
             data = await WhatsAppInstances[this.key].sendTextMessage(
                 id,
-                message
+                detail.text
             )
         } catch (error) {
             console.log(error)

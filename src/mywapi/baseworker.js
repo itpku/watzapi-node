@@ -2,8 +2,17 @@
 
 class Baseworker {
 
-    constructor() {
+    key = undefined
+    type = undefined
+    data = undefined
+    url = undefined
+
+    constructor(key, type) {
+        this.key = key
+        this.type = type
     }
+
+    async send(id, detail) { }
 
     async isOnline(key) {
         // const instance = WhatsAppInstances[req.query.key]
